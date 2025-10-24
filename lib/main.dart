@@ -1,3 +1,4 @@
+import 'package:expensetracker/config/routes/app_route.dart';
 import 'package:expensetracker/config/theme/app_theme.dart';
 import 'package:expensetracker/presentation/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: appTheme,
-
-      home: DashboardScreen(),
+      initialRoute: AppRoutes.dashboard,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }

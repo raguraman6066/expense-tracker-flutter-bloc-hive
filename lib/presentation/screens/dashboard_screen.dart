@@ -1,3 +1,4 @@
+import 'package:expensetracker/config/routes/app_route.dart';
 import 'package:expensetracker/presentation/screens/home_screen.dart';
 import 'package:expensetracker/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,9 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, AppRoutes.addTransaction);
+        },
         shape: CircleBorder(),
         child: Icon(Icons.add),
       ),

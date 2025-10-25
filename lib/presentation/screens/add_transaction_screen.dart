@@ -1,6 +1,7 @@
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_bloc.dart';
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_event.dart';
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_state.dart';
+import 'package:expensetracker/cubit/home_cubit/home_cubit.dart';
 import 'package:expensetracker/data/models/category_model.dart';
 import 'package:expensetracker/data/models/transaction_model.dart';
 import 'package:expensetracker/utils/category_list.dart';
@@ -117,6 +118,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               BlocConsumer<AddTransactionBloc, AddTransactionState>(
                 listener: (context, state) {
                   if (state is AddTransactionSuccess) {
+                    context.read<HomeCubit>().loadTransactions();
                     showSnackBar(context, state.successMessage);
                     setState(() {
                       _amountController.text = "";

@@ -1,6 +1,7 @@
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_bloc.dart';
 import 'package:expensetracker/config/routes/app_route.dart';
 import 'package:expensetracker/config/theme/app_theme.dart';
+import 'package:expensetracker/cubit/home_cubit/home_cubit.dart';
 import 'package:expensetracker/data/models/transaction_model.dart';
 import 'package:expensetracker/data/repositories/transaction_repository.dart';
 import 'package:expensetracker/utils/category_model_adapter.dart';
@@ -34,6 +35,10 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (context) =>
                 AddTransactionBloc(context.read<TransactionRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                HomeCubit(context.read<TransactionRepository>()),
           ),
         ],
         child: MaterialApp(

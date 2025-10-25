@@ -1,9 +1,14 @@
+import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_bloc.dart';
+import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_event.dart';
+import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_state.dart';
 import 'package:expensetracker/data/models/category_model.dart';
 import 'package:expensetracker/data/models/transaction_model.dart';
 import 'package:expensetracker/utils/category_list.dart';
 import 'package:expensetracker/utils/constants.dart';
 import 'package:expensetracker/utils/format_date.dart';
+import 'package:expensetracker/utils/show_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -109,30 +114,65 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               SizedBox(height: defaultSpacing),
-              ElevatedButton(
-                onPressed: () {
-                  if (RegExp(
-                        r'[0-9]+(\.[0-9]+)?$',
-                      ).hasMatch(_amountController.text.trim()) &&
-                      _amountController.text.isNotEmpty) {
-                    print(_transactionId);
-                    print(_selectedType);
-                    print(_selectedCategory.name);
-                    print(formatDate(_selectedDate));
-                    print(_amountController.text);
+              BlocConsumer<AddTransactionBloc, AddTransactionState>(
+                listener: (context, state) {
+                  if (state is AddTransactionSuccess) {
+                    showSnackBar(context, state.successMessage);
+                    setState(() {
+                      _amountController.text = "";
+                      _selectedDate = DateTime.now();
+                      _transactionId =
+                          DateTime.now().millisecondsSinceEpoch % (1 << 28);
+                    });
+                  } else if (state is AddTransactionError) {
+                    showSnackBar(context, state.errorMessage);
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColorDark,
-                ),
-                child: Text(
-                  "Submit",
-                  style: TextStyle(
-                    fontSize: defaultFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                builder: (context, state) {
+                  if (state is AddTransactionProgress) {
+                    return CircularProgressIndicator();
+                  }
+                  return ElevatedButton(
+                    onPressed: () {
+                      if (RegExp(
+                            r'[0-9]+(\.[0-9]+)?$',
+                          ).hasMatch(_amountController.text.trim()) &&
+                          _amountController.text.isNotEmpty) {
+                        TransactionModel transactionModel = TransactionModel(
+                          id: _transactionId,
+                          amount: double.parse(_amountController.text),
+                          category: _selectedCategory,
+                          type: _selectedType,
+                          date: _selectedDate,
+                        );
+                        context.read<AddTransactionBloc>().add(
+                          SubmitTransactionEvent(transactionModel),
+                        );
+                        // print(_transactionId);
+                        // print(_selectedType);
+                        // print(_selectedCategory.name);
+                        // print(formatDate(_selectedDate));
+                        // print(_amountController.text);
+                      } else {
+                        showSnackBar(
+                          context,
+                          "Only Integer and decimal amount allowed",
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColorDark,
+                    ),
+                    child: Text(
+                      "Submit",
+                      style: TextStyle(
+                        fontSize: defaultFontSize,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),

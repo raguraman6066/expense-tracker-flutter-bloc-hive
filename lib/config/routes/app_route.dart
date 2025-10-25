@@ -16,7 +16,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (context) => AddTransactionScreen(),
           fullscreenDialog: true,
-        );  
+        );
       default:
         return MaterialPageRoute(
           builder: (context) => Scaffold(

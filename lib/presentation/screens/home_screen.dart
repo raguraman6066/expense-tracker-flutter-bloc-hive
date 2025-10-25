@@ -64,8 +64,10 @@ class HomeScreen extends StatelessWidget {
                     id: DateTime.now().millisecondsSinceEpoch,
                     amount: Random().nextInt(1000) + 50,
                     category: index % 2 == 0
-                        ? incomeCategoryList[index]
-                        : expenseCategoryList[index],
+                        ? incomeCategoryList[index % incomeCategoryList.length]
+                        : expenseCategoryList[index %
+                              expenseCategoryList.length],
+
                     type: index % 2 == 0
                         ? TransactionType.income
                         : TransactionType.expense,

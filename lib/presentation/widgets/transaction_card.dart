@@ -1,14 +1,15 @@
-import 'package:expensetracker/data/models/transaction_model.dart';
 import 'package:expensetracker/utils/constants.dart';
-import 'package:expensetracker/utils/format_date.dart';
 import 'package:flutter/material.dart';
+import '../../data/models/transaction_model.dart';
+import '../../utils/format_date.dart';
 
 class TransactionCard extends StatelessWidget {
-  final TransactionModel transactionModel;
+  final TransactionModel transaction;
   final VoidCallback onDelete;
+
   const TransactionCard({
     super.key,
-    required this.transactionModel,
+    required this.transaction,
     required this.onDelete,
   });
 
@@ -21,32 +22,32 @@ class TransactionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(defaultRadius),
           color: Colors.white,
         ),
-        padding: EdgeInsets.all(defaultSpacing),
+        padding: const EdgeInsets.all(defaultSpacing),
         child: Row(
           children: [
             Icon(
-              transactionModel.category.icon,
+              transaction.category.icon,
               size: defaultIconSize,
-              color: transactionModel.category.color,
+              color: transaction.category.color,
             ),
-            SizedBox(width: defaultSpacing),
+            const SizedBox(width: defaultSpacing),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transactionModel.category.name,
-                    style: TextStyle(
+                    transaction.category.name,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: defaultFontSize,
                     ),
                   ),
-                  SizedBox(height: defaultSpacing / 4),
+                  const SizedBox(height: defaultSpacing / 4),
                   Text(
-                    formatDate(transactionModel.date),
-                    style: TextStyle(
+                    formatDate(transaction.date),
+                    style: const TextStyle(
                       color: Colors.grey,
-                      fontSize: defaultFontSize - 4,
+                      fontSize: defaultFontSize - 4.0,
                     ),
                   ),
                 ],
@@ -56,20 +57,20 @@ class TransactionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "${transactionModel.type == TransactionType.income ? '+ ' : "- "}"
-                  "\$${transactionModel.amount.toStringAsFixed(2)}",
+                  "${transaction.type == TransactionType.income ? '+ ' : '- '}"
+                  "\$${transaction.amount.toStringAsFixed(2)}",
                   style: TextStyle(
-                    color: transactionModel.type == TransactionType.income
+                    color: transaction.type == TransactionType.income
                         ? Colors.green
                         : Colors.red,
                     fontWeight: FontWeight.bold,
                     fontSize: defaultFontSize,
                   ),
                 ),
-                SizedBox(height: defaultSpacing / 4),
+                const SizedBox(height: defaultSpacing / 4),
                 IconButton(
+                  icon: const Icon(Icons.delete),
                   onPressed: onDelete,
-                  icon: Icon(Icons.delete),
                   color: Colors.grey,
                 ),
               ],

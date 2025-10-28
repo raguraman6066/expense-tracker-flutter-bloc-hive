@@ -1,23 +1,21 @@
-import 'dart:math';
-
 import 'package:expensetracker/cubit/home_cubit/home_cubit.dart';
 import 'package:expensetracker/cubit/home_cubit/home_state.dart';
-import 'package:expensetracker/data/models/transaction_model.dart';
-import 'package:expensetracker/presentation/widgets/message_widget.dart';
-import 'package:expensetracker/presentation/widgets/summary_card.dart';
 import 'package:expensetracker/presentation/widgets/transaction_card.dart';
-import 'package:expensetracker/utils/category_list.dart';
-import 'package:expensetracker/utils/constants.dart';
 import 'package:expensetracker/utils/show_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../utils/constants.dart';
+import '../widgets/message_widget.dart';
+import '../widgets/summary_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Trigger transaction loading once when the screen is first built
     context.read<HomeCubit>().loadTransactions();
+
     return BlocConsumer<HomeCubit, HomeState>(
       listener: (context, state) {
         if (state is HomeDeleteSuccessState) {
@@ -27,11 +25,11 @@ class HomeScreen extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is HomeLoadingState) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (state is HomeLoadedState) {
           return SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.all(defaultSpacing),
+              padding: const EdgeInsets.all(defaultSpacing),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -41,7 +39,7 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.account_balance,
                     color: primaryDark,
                   ),
-                  SizedBox(height: defaultSpacing),
+                  const SizedBox(height: defaultSpacing),
                   Row(
                     children: [
                       Expanded(
@@ -52,56 +50,40 @@ class HomeScreen extends StatelessWidget {
                           color: secondaryDark,
                         ),
                       ),
-                      SizedBox(width: defaultSpacing),
+                      const SizedBox(width: defaultSpacing),
                       Expanded(
                         child: SummaryCard(
                           label: "Expense",
-                          amount: "\$${state.summary.totalExpenses}",
+                          amount: "-\$${state.summary.totalExpenses}",
                           icon: Icons.arrow_downward_rounded,
                           color: accentColor,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: defaultSpacing * 2),
+                  const SizedBox(height: defaultSpacing * 2),
                   Text(
                     "Recent Transactions",
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: defaultSpacing),
+                  const SizedBox(height: defaultSpacing),
                   state.transactions.isEmpty
-                      ? SizedBox(
+                      ? const SizedBox(
                           height: 250,
                           child: MessageWidget(
                             icon: Icons.money_off,
-                            message: "No transaction added yet",
+                            message: "No transactions added yet",
                           ),
                         )
                       : ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemCount: state.transactions.length,
                           itemBuilder: (context, index) {
                             return TransactionCard(
-                              transactionModel: state.transactions[index],
-                              // TransactionModel(
-                              //   id: DateTime.now().millisecondsSinceEpoch,
-                              //   amount: Random().nextInt(1000) + 50,
-                              //   category: index % 2 == 0
-                              //       ? incomeCategoryList[index %
-                              //             incomeCategoryList.length]
-                              //       : expenseCategoryList[index %
-                              //             expenseCategoryList.length],
-
-                              //   type: index % 2 == 0
-                              //       ? TransactionType.income
-                              //       : TransactionType.expense,
-                              //   date: DateTime.now().subtract(
-                              //     Duration(days: Random().nextInt(90)),
-                              //   ),
-                              // ),
+                              transaction: state.transactions[index],
                               onDelete: () {
                                 context.read<HomeCubit>().deleteTransaction(
                                   state.transactions[index].id,
@@ -120,9 +102,9 @@ class HomeScreen extends StatelessWidget {
             message: state.errorMessage,
           );
         } else {
-          return MessageWidget(
+          return const MessageWidget(
             icon: Icons.broken_image,
-            message: "Something went wront",
+            message: "Something Went Wrong",
           );
         }
       },

@@ -1,10 +1,21 @@
-import 'package:expensetracker/config/routes/app_route.dart';
 import 'package:expensetracker/presentation/screens/home_screen.dart';
-import 'package:expensetracker/utils/constants.dart';
+import 'package:expensetracker/presentation/screens/stats_screen.dart';
 import 'package:flutter/material.dart';
+import '../../config/routes/app_route.dart';
+import '../../utils/constants.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  // The current index of the bottom navigation bar.
+  int _currentIndex = 0;
+  // The pages to be displayed.
+  final List<Widget> _pages = const [HomeScreen(), StatsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -14,14 +25,20 @@ class DashboardScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset("images/logo.png", height: defaultIconSize),
-            SizedBox(width: 10),
-            Text("Blocify"),
+            const SizedBox(width: 10.0),
+            const Text("expensetracker"),
           ],
         ),
       ),
-      body: HomeScreen(),
+      body: _pages.elementAt(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: "Stats"),
         ],
@@ -30,8 +47,8 @@ class DashboardScreen extends StatelessWidget {
         onPressed: () {
           Navigator.pushNamed(context, AppRoutes.addTransaction);
         },
-        shape: CircleBorder(),
-        child: Icon(Icons.add),
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

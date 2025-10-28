@@ -1,11 +1,14 @@
-import 'package:expensetracker/data/models/transaction_model.dart';
-import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../models/transaction_model.dart';
 
 class TransactionRepository {
   late final Box<TransactionModel> _transactionBox;
+
   TransactionRepository(Box<TransactionModel> transactionBox) {
     _transactionBox = transactionBox;
   }
+
+  // Add a new transaction with id key to the box
   Future<void> addTransaction(TransactionModel transaction) async {
     try {
       if (transaction.amount > 0) {
@@ -18,41 +21,91 @@ class TransactionRepository {
     }
   }
 
+  // Get all transactions from the hive box
   List<TransactionModel> getAllTransactions() {
     return _transactionBox.values.toList();
   }
 
+  // To retrieve the latest 10 or custom number of transactions
   List<TransactionModel> getLatestTransactions({int count = 10}) {
-    final allTransaction = getAllTransactions();
-    final latestTransaction = allTransaction.reversed.take(count).toList();
-    return latestTransaction;
+    final allTransactions = getAllTransactions();
+    final latestTransactions = allTransactions.reversed.take(count).toList();
+    return latestTransactions;
   }
 
+  // Calculates and returns the total income amount from all transactions.
   double getTotalIncome() {
-    final allTransaction = getAllTransactions();
-    return allTransaction
+    final allTransactions = getAllTransactions();
+    return allTransactions
         .where((transaction) => transaction.type == TransactionType.income)
         .fold(0, (sum, transaction) => sum + transaction.amount);
   }
 
+  // Calculates and returns the total expenses amount from all transactions.
   double getTotalExpenses() {
-    final allTransaction = getAllTransactions();
-    return allTransaction
+    final allTransactions = getAllTransactions();
+    return allTransactions
         .where((transaction) => transaction.type == TransactionType.expense)
         .fold(0, (sum, transaction) => sum + transaction.amount);
   }
 
+  //  Computes the total balance by subtracting total expenses from total income.
   double getTotalBalance() {
     double totalIncome = getTotalIncome();
     double totalExpenses = getTotalExpenses();
     return totalIncome - totalExpenses;
   }
 
+  // Delete a transaction of a specific id
   Future<void> deleteTransaction(int transactionId) async {
-    try {
-      await _transactionBox.delete(transactionId);
-    } catch (e) {
-      throw Exception("Failed to delete transaction: $e");
+    await _transactionBox.delete(transactionId);
+  }
+
+  // Retreive only the unique set of month-year in which atleast one transaction happened.
+  Set<DateTime> getUniqueTransactionMonths() {
+    final transactions = getAllTransactions();
+    final uniqueMonths = <DateTime>{};
+    for (var transaction in transactions) {
+      final monthYear = DateTime(transaction.date.year, transaction.date.month);
+      uniqueMonths.add(monthYear);
     }
+    return uniqueMonths;
+  }
+
+  // Retreive transactions for a specified month, or if no date is provided then then latest month with transactions.
+  // It filters transactions based on the specified month and sorts them chronologically.
+  List<TransactionModel> getStatsTransactions({DateTime? statsDate}) {
+    // If statsDate is not provided, find the latest month with transactions
+    if (statsDate == null) {
+      // Get unique months from transactions
+      final uniqueMonths = getUniqueTransactionMonths();
+
+      if (uniqueMonths.isEmpty) {
+        // Handle case where no transactions are available
+        return [];
+      }
+
+      // Find the latest month
+      final latestMonth = uniqueMonths.reduce((a, b) => a.isAfter(b) ? a : b);
+
+      // Use the latest month as the statsDate
+      statsDate = latestMonth;
+    }
+
+    final transactions = getAllTransactions();
+
+    // Filter transactions for the specified statsDate
+    final statsTransactions = transactions
+        .where(
+          (transaction) =>
+              transaction.date.year == statsDate!.year &&
+              transaction.date.month == statsDate.month,
+        )
+        .toList();
+
+    // Sort transactions chronologically
+    statsTransactions.sort((a, b) => a.date.compareTo(b.date));
+
+    return statsTransactions;
   }
 }

@@ -1,15 +1,18 @@
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_bloc.dart';
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_event.dart';
 import 'package:expensetracker/bloc/add_transaction_bloc/add_transaction_state.dart';
+import 'package:expensetracker/bloc/stats_bloc/stats_bloc.dart';
+import 'package:expensetracker/bloc/stats_bloc/stats_event.dart';
 import 'package:expensetracker/cubit/home_cubit/home_cubit.dart';
 import 'package:expensetracker/data/models/category_model.dart';
-import 'package:expensetracker/data/models/transaction_model.dart';
 import 'package:expensetracker/utils/category_list.dart';
 import 'package:expensetracker/utils/constants.dart';
 import 'package:expensetracker/utils/format_date.dart';
-import 'package:expensetracker/utils/show_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../data/models/transaction_model.dart';
+import '../../utils/show_snackbar.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -19,11 +22,16 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
-  TransactionType _selectedType = TransactionType.expense;
-  CategoryModel _selectedCategory = expenseCategoryList.first;
-  DateTime _selectedDate = DateTime.now();
-  int _transactionId = DateTime.now().millisecondsSinceEpoch % (1 << 28);
-  final _amountController = TextEditingController(text: "");
+  TransactionType _selectedType = TransactionType.expense; // Initial type
+  CategoryModel _selectedCategory =
+      expenseCategoryList.first; // Initial Category
+  DateTime _selectedDate = DateTime.now(); // Initial Date
+  int _transactionId =
+      DateTime.now().millisecondsSinceEpoch % (1 << 28); // Generate ID
+  final TextEditingController _amountController = TextEditingController(
+    text: "",
+  ); // Initial amount
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -34,13 +42,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(DateTime.now().year, 1, 1),
+      firstDate: DateTime(
+        DateTime.now().year,
+        1,
+        1,
+      ), // Set firstDate to beginning of current year
       lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -54,50 +64,61 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         : incomeCategoryList
               .map((category) => _buildCategoryItem(category))
               .toList();
+
     return Scaffold(
-      appBar: AppBar(title: Text("Add Transaction")),
+      appBar: AppBar(title: const Text("Add Transaction")),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(defaultSpacing),
+          padding: const EdgeInsets.all(defaultSpacing),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Transaction Type Radio Buttons
               Row(
                 children: [
-                  _buildRadioButton(TransactionType.expense, "Expense"),
-                  SizedBox(width: defaultSpacing),
-                  _buildRadioButton(TransactionType.income, "Income"),
+                  _buildRadioButton(TransactionType.expense, 'Expense'),
+                  const SizedBox(width: defaultSpacing),
+                  _buildRadioButton(TransactionType.income, 'Income'),
                 ],
               ),
-              SizedBox(height: defaultSpacing),
+              const SizedBox(height: defaultSpacing),
+
+              // Category Dropdown based on selected type
               DropdownButtonFormField<CategoryModel>(
                 items: categoryItems,
                 value: _selectedCategory,
                 onChanged: (value) {
+                  // Handle category selection
                   _selectedCategory = value!;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Category",
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: defaultSpacing),
+              const SizedBox(height: defaultSpacing),
+
+              // Amount Textfield
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Amount (\$)",
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: defaultSpacing),
+
+              const SizedBox(height: defaultSpacing),
+
               TextButton(
                 onPressed: () => _selectDate(context),
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.all(defaultSpacing + 5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(defaultRadius / 2),
-                    side: BorderSide(color: Colors.black),
+                  padding: const EdgeInsets.all(defaultSpacing + 6.0),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(defaultRadius / 2),
+                    ),
+                    side: BorderSide(color: Colors.black), // Add a border
                   ),
                 ),
                 child: Row(
@@ -105,20 +126,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   children: [
                     Text(
                       formatDate(_selectedDate),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: defaultFontSize,
                       ),
                     ),
-                    Icon(Icons.calendar_today, color: Colors.black),
+                    const Icon(Icons.calendar_today, color: Colors.black),
                   ],
                 ),
               ),
-              SizedBox(height: defaultSpacing),
+              const SizedBox(height: defaultSpacing),
+
+              // Submit Button
               BlocConsumer<AddTransactionBloc, AddTransactionState>(
                 listener: (context, state) {
                   if (state is AddTransactionSuccess) {
                     context.read<HomeCubit>().loadTransactions();
+                    context.read<StatsBloc>().add(const LoadStatsEvent());
                     showSnackBar(context, state.successMessage);
                     setState(() {
                       _amountController.text = "";
@@ -132,15 +156,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 },
                 builder: (context, state) {
                   if (state is AddTransactionProgress) {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   }
                   return ElevatedButton(
                     onPressed: () {
+                      // Check for only integar or decimal input. No signs.
                       if (RegExp(
-                            r'[0-9]+(\.[0-9]+)?$',
-                          ).hasMatch(_amountController.text.trim()) &&
-                          _amountController.text.isNotEmpty) {
-                        TransactionModel transactionModel = TransactionModel(
+                            r'^[0-9]+(\.[0-9]+)?$',
+                          ).hasMatch(_amountController.text) &&
+                          _amountController.text.trim().isNotEmpty) {
+                        TransactionModel transaction = TransactionModel(
                           id: _transactionId,
                           amount: double.parse(_amountController.text),
                           category: _selectedCategory,
@@ -148,13 +173,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           date: _selectedDate,
                         );
                         context.read<AddTransactionBloc>().add(
-                          SubmitTransactionEvent(transactionModel),
+                          SubmitTransactionEvent(transaction),
                         );
-                        // print(_transactionId);
-                        // print(_selectedType);
-                        // print(_selectedCategory.name);
-                        // print(formatDate(_selectedDate));
-                        // print(_amountController.text);
                       } else {
                         showSnackBar(
                           context,
@@ -165,8 +185,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColorDark,
                     ),
-                    child: Text(
-                      "Submit",
+                    child: const Text(
+                      'Submit',
                       style: TextStyle(
                         fontSize: defaultFontSize,
                         fontWeight: FontWeight.bold,
@@ -210,7 +230,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       child: Row(
         children: [
           Icon(category.icon, color: category.color),
-          SizedBox(width: defaultSpacing / 2),
+          const SizedBox(width: defaultSpacing / 2),
           Text(category.name),
         ],
       ),
